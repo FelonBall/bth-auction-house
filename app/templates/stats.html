@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Stats — BTH Auction House{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Marketplace statistics</h2>
+
+<!-- Recent sales -->
+<section class="mb-5">
+  <h4>Recent sales</h4>
+  {% if recent_sales %}
+    <table class="table table-sm align-middle bg-white">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Item</th>
+          <th>Category</th>
+          <th>Seller</th>
+          <th>Buyer</th>
+          <th class="text-end">Price</th>
+          <th>Completed</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in recent_sales %}
+          <tr>
+            <td class="text-muted">{{ r.transaction_id }}</td>
+            <td>
+              <a href="{{ url_for('auctions.detail', auction_id=r.auction_id) }}">
+                {{ r.title }}
+              </a>
+            </td>
+            <td><span class="text-muted">{{ r.category_name }}</span></td>
+            <td>{{ r.seller_username }}</td>
+            <td>{{ r.buyer_username }}</td>
+            <td class="text-end price">{{ r.sale_price|sek }}</td>
+            <td>
+              <span title="{{ r.completed_at.strftime('%Y-%m-%d %H:%M:%S') }}">
+                {{ r.completed_at|humanize_until }}
+              </span>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="text-muted">No completed sales yet.</p>
+  {% endif %}
+</section>
+
+<!-- Q4 -->
+<section class="mb-5">
+  <h4>Ending in the next 24 hours</h4>
+  {% if ending_soon %}
+    <table class="table table-sm align-middle bg-white">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th class="text-end">Current price</th>
+          <th class="text-end">Bids</th>
+          <th>Ends</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in ending_soon %}
+          <tr>
+            <td>
+              <a href="{{ url_for('auctions.detail', auction_id=r.auction_id) }}">
+                {{ r.title }}
+              </a>
+            </td>
+            <td class="text-end price">{{ r.current_price|sek }}</td>
+            <td class="text-end">{{ r.bid_count }}</td>
+            <td>
+              <span class="{{ r.end_time|urgency }}"
+                    title="{{ r.end_time.strftime('%Y-%m-%d %H:%M') }}">
+                {{ r.end_time|humanize_until }}
+              </span>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="text-muted">No auctions ending soon.</p>
+  {% endif %}
+</section>
+
+<!-- Q2 -->
+<section class="mb-5">
+  <h4>Top sellers (last 30 days)</h4>
+  {% if top_sellers %}
+    <table class="table table-sm align-middle bg-white">
+      <thead>
+        <tr>
+          <th>Seller</th>
+          <th class="text-end">Sales</th>
+          <th class="text-end">Total revenue</th>
+          <th class="text-end">Avg sale price</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in top_sellers %}
+          <tr>
+            <td>{{ r.username }}</td>
+            <td class="text-end">{{ r.sales_count }}</td>
+            <td class="text-end price">{{ r.total_revenue|sek }}</td>
+            <td class="text-end price">{{ r.avg_sale_price|sek }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="text-muted">No transactions in the last 30 days yet.</p>
+  {% endif %}
+</section>
+
+<!-- Q5 -->
+<section class="mb-5">
+  <h4>Category leaderboard</h4>
+  {% if category_board %}
+    <table class="table table-sm align-middle bg-white">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th class="text-end">Sales</th>
+          <th class="text-end">Avg price</th>
+          <th class="text-end">Min</th>
+          <th class="text-end">Max</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in category_board %}
+          <tr>
+            <td>{{ r.category_name }}</td>
+            <td class="text-end">{{ r.sales_count }}</td>
+            <td class="text-end price">{{ r.avg_sale_price|sek }}</td>
+            <td class="text-end price">{{ r.min_sale_price|sek }}</td>
+            <td class="text-end price">{{ r.max_sale_price|sek }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="text-muted">No completed sales yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

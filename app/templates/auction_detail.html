@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}{{ a.title }} — BTH Auction House{% endblock %}
+
+{% block content %}
+<a class="btn btn-link p-0 mb-2" href="{{ url_for('auctions.browse') }}">
+  &larr; Back to browse
+</a>
+
+<div class="row g-4">
+  <div class="col-md-7">
+    <h2>{{ a.title }}</h2>
+    <p class="text-muted mb-3">
+      {{ a.category_name }} ·
+      Seller <strong>{{ a.seller_username }}</strong> ·
+      <span class="badge text-bg-secondary badge-condition">
+        {{ a.item_condition.replace('_', ' ') }}
+      </span>
+    </p>
+    <p>{{ a.description }}</p>
+
+    <h5 class="mt-4">Bid history ({{ a.bid_count }} bids)</h5>
+    {% if bids %}
+      <table class="table table-sm bg-white align-middle">
+        <thead>
+          <tr><th>Bidder</th><th class="text-end">Amount</th><th>Time</th></tr>
+        </thead>
+        <tbody>
+          {% for b in bids %}
+            <tr>
+              <td>{{ b.bidder_username }}</td>
+              <td class="text-end price">{{ b.amount|sek }}</td>
+              <td><span class="text-muted">{{ b.placed_at.strftime('%Y-%m-%d %H:%M') }}</span></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-muted">No bids yet — be the first.</p>
+    {% endif %}
+  </div>
+
+  <div class="col-md-5">
+    <div class="card card-bid">
+      <div class="card-body">
+        <p class="text-muted mb-1">Current price</p>
+        <div class="price price-lg mb-3">{{ a.current_price|sek }}</div>
+
+        <p class="mb-1">
+          <span class="text-muted">Started at</span>
+          <span class="price">{{ a.start_price|sek }}</span>
+        </p>
+        <p class="{{ a.end_time|urgency }} mb-3"
+           title="{{ a.end_time.strftime('%Y-%m-%d %H:%M') }}">
+          {% if a.is_active %}Ends {% endif %}{{ a.end_time|humanize_until }}
+        </p>
+
+        {% if a.is_active %}
+          {% if current_user() and current_user().user_id != a.seller_id %}
+            <form method="post"
+                  action="{{ url_for('bids.place', auction_id=a.auction_id) }}">
+              <div class="input-group mb-2">
+                <span class="input-group-text">Bid</span>
+                <input class="form-control" type="number" step="1"
+                       min="{{ a.current_price|int + 1 }}"
+                       name="amount" required>
+                <span class="input-group-text">kr</span>
+                <button class="btn btn-primary">Place bid</button>
+              </div>
+              <small class="text-muted">
+                Minimum next bid: {{ (a.current_price|int + 1)|sek }}
+              </small>
+            </form>
+
+            <hr>
+
+            {% if on_watchlist %}
+              <form method="post"
+                    action="{{ url_for('watchlist.remove', auction_id=a.auction_id) }}">
+                <button class="btn btn-outline-secondary w-100">
+                  Remove from watchlist
+                </button>
+              </form>
+            {% else %}
+              <form method="post"
+                    action="{{ url_for('watchlist.add', auction_id=a.auction_id) }}">
+                <button class="btn btn-outline-primary w-100">
+                  Add to watchlist
+                </button>
+              </form>
+            {% endif %}
+          {% elif current_user() and current_user().user_id == a.seller_id %}
+            <p class="text-muted mb-2">You are the seller of this item.</p>
+            <form method="post"
+                  action="{{ url_for('auctions.end_now', auction_id=a.auction_id) }}"
+                  onsubmit="return confirm('End this auction now? If there is a high bidder, a sale will be recorded immediately.');">
+              <button class="btn btn-danger w-100">End auction now</button>
+            </form>
+            <small class="text-muted d-block mt-1">
+              Calls the <code>sp_end_auction_now</code> procedure.
+            </small>
+          {% else %}
+            <a class="btn btn-primary w-100"
+               href="{{ url_for('auth.login', next=request.path) }}">
+              Log in to bid
+            </a>
+          {% endif %}
+        {% else %}
+          <span class="badge text-bg-secondary">Auction {{ a.status }}</span>
+          {% if a.high_bidder_id %}
+            <p class="mt-2 mb-0">
+              Winning bid: <span class="price fw-semibold">{{ a.current_price|sek }}</span>
+            </p>
+          {% endif %}
+        {% endif %}
+      </div>{# /.card-body #}
+    </div>{# /.card #}
+
+    {# ------- Transaction record (when the auction has resulted in a sale) ------- #}
+    {% if a.tx_id %}
+      <div class="card card-bid mt-3" style="border-left: 4px solid #1f3a68;">
+        <div class="card-body">
+          <h6 class="text-uppercase text-muted mb-3" style="letter-spacing: 0.05em;">
+            Sale completed
+          </h6>
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">Buyer</span>
+            <strong>{{ a.tx_buyer_username }}</strong>
+          </div>
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">Seller</span>
+            <strong>{{ a.seller_username }}</strong>
+          </div>
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">Sale price</span>
+            <span class="price fw-semibold">{{ a.tx_sale_price|sek }}</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">Completed</span>
+            <span title="{{ a.tx_completed_at.strftime('%Y-%m-%d %H:%M:%S') }}">
+              {{ a.tx_completed_at.strftime('%Y-%m-%d %H:%M') }}
+            </span>
+          </div>
+          <hr class="my-2">
+          <small class="text-muted">
+            Transaction&nbsp;#{{ a.tx_id }} &mdash; created by
+            <code>sp_close_expired_auctions</code> /
+            <code>sp_end_auction_now</code>.
+          </small>
+        </div>{# /.card-body #}
+      </div>{# /.card #}
+    {% endif %}
+  </div>{# /.col-md-5 #}
+</div>{# /.row #}
+{% endblock %}

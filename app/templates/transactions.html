@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}My transactions — BTH Auction House{% endblock %}
+
+{% block content %}
+<h2 class="mb-3">My transactions</h2>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card card-bid"><div class="card-body">
+      <p class="text-muted mb-1">Purchases</p>
+      <div class="price fw-semibold" style="font-size:1.4rem;">{{ totals.purchases_count }}</div>
+    </div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card card-bid"><div class="card-body">
+      <p class="text-muted mb-1">Total spent</p>
+      <div class="price fw-semibold" style="font-size:1.4rem;">{{ totals.spent|sek }}</div>
+    </div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card card-bid"><div class="card-body">
+      <p class="text-muted mb-1">Sales</p>
+      <div class="price fw-semibold" style="font-size:1.4rem;">{{ totals.sales_count }}</div>
+    </div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card card-bid"><div class="card-body">
+      <p class="text-muted mb-1">Total earned</p>
+      <div class="price fw-semibold" style="font-size:1.4rem;">{{ totals.earned|sek }}</div>
+    </div></div>
+  </div>
+</div>
+
+<section class="mb-5">
+  <h4>Items I bought</h4>
+  {% if purchases %}
+    <table class="table align-middle bg-white">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Item</th>
+          <th>Category</th>
+          <th>Seller</th>
+          <th class="text-end">Sale price</th>
+          <th>Completed</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in purchases %}
+          <tr>
+            <td class="text-muted">{{ t.transaction_id }}</td>
+            <td>
+              <a href="{{ url_for('auctions.detail', auction_id=t.auction_id) }}">
+                {{ t.title }}
+              </a>
+            </td>
+            <td><span class="text-muted">{{ t.category_name }}</span></td>
+            <td>{{ t.seller_username }}</td>
+            <td class="text-end price">{{ t.sale_price|sek }}</td>
+            <td>{{ t.completed_at.strftime('%Y-%m-%d %H:%M') }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="text-muted">You haven't bought anything yet.</p>
+  {% endif %}
+</section>
+
+<section>
+  <h4>Items I sold</h4>
+  {% if sales %}
+    <table class="table align-middle bg-white">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Item</th>
+          <th>Category</th>
+          <th>Buyer</th>
+          <th class="text-end">Sale price</th>
+          <th>Completed</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in sales %}
+          <tr>
+            <td class="text-muted">{{ t.transaction_id }}</td>
+            <td>
+              <a href="{{ url_for('auctions.detail', auction_id=t.auction_id) }}">
+                {{ t.title }}
+              </a>
+            </td>
+            <td><span class="text-muted">{{ t.category_name }}</span></td>
+            <td>{{ t.buyer_username }}</td>
+            <td class="text-end price">{{ t.sale_price|sek }}</td>
+            <td>{{ t.completed_at.strftime('%Y-%m-%d %H:%M') }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="text-muted">You haven't sold anything yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Watchlist — BTH Auction House{% endblock %}
+
+{% block content %}
+<h2 class="mb-3">My watchlist</h2>
+
+{% if entries %}
+  <table class="table align-middle bg-white">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Seller</th>
+        <th class="text-end">Current price</th>
+        <th class="text-end">Bids</th>
+        <th>Status</th>
+        <th>Ends</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in entries %}
+        <tr>
+          <td>
+            <a href="{{ url_for('auctions.detail', auction_id=e.auction_id) }}">
+              {{ e.title }}
+            </a>
+          </td>
+          <td>{{ e.seller_username }}</td>
+          <td class="text-end price">{{ e.current_price|sek }}</td>
+          <td class="text-end">{{ e.bid_count }}</td>
+          <td>
+            {% if e.is_active %}
+              {% if e.is_high_bidder %}
+                <span class="badge text-bg-success">leading</span>
+              {% else %}
+                <span class="badge text-bg-warning">outbid</span>
+              {% endif %}
+            {% else %}
+              <span class="badge text-bg-secondary">{{ e.status }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="{{ e.end_time|urgency }}"
+                  title="{{ e.end_time.strftime('%Y-%m-%d %H:%M') }}">
+              {{ e.end_time|humanize_until }}
+            </span>
+          </td>
+          <td>
+            <form method="post"
+                  action="{{ url_for('watchlist.remove', auction_id=e.auction_id) }}">
+              <button class="btn btn-sm btn-outline-secondary">Remove</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p class="text-muted">Your watchlist is empty.</p>
+{% endif %}
+{% endblock %}

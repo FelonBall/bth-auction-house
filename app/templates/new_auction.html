@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}List item — BTH Auction House{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <h2 class="mb-3">List a new item for auction</h2>
+    <form method="post">
+      <div class="mb-3">
+        <label class="form-label">Title</label>
+        <input class="form-control" name="title" required maxlength="200">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Category</label>
+        <select class="form-select" name="category_id" required>
+          <option value="">Pick a category…</option>
+          {% for c in categories %}
+            <option value="{{ c.category_id }}">{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Condition</label>
+        <select class="form-select" name="item_condition" required>
+          <option value="new">New</option>
+          <option value="like_new">Like new</option>
+          <option value="good" selected>Good</option>
+          <option value="fair">Fair</option>
+          <option value="poor">Poor</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" name="description" rows="4"></textarea>
+      </div>
+      <div class="row">
+        <div class="col mb-3">
+          <label class="form-label">Starting price</label>
+          <div class="input-group">
+            <input class="form-control" type="number" step="1" min="1"
+                   name="start_price" required>
+            <span class="input-group-text">kr</span>
+          </div>
+        </div>
+        <div class="col mb-3">
+          <label class="form-label">Duration</label>
+          <div class="input-group">
+            <input class="form-control" type="number" min="1" max="30"
+                   name="duration_days" value="7" required>
+            <span class="input-group-text">days</span>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary">Create auction</button>
+      <a class="btn btn-link" href="{{ url_for('auctions.browse') }}">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

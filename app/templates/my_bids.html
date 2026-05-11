@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}My bids — BTH Auction House{% endblock %}
+
+{% block content %}
+<h2 class="mb-3">My bidding history</h2>
+
+{% if bids %}
+  <table class="table align-middle bg-white">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Seller</th>
+        <th class="text-end">My bid</th>
+        <th class="text-end">Current high</th>
+        <th>Outcome</th>
+        <th>Placed</th>
+        <th>Ends</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for b in bids %}
+        <tr>
+          <td>
+            <a href="{{ url_for('auctions.detail', auction_id=b.auction_id) }}">
+              {{ b.title }}
+            </a>
+          </td>
+          <td>{{ b.seller_username }}</td>
+          <td class="text-end price">{{ b.amount|sek }}</td>
+          <td class="text-end price">{{ b.current_high_bid|sek }}</td>
+          <td>
+            {% set badge = {
+                'won': 'success', 'leading': 'primary',
+                'outbid': 'warning', 'lost': 'secondary'
+              }[b.outcome] %}
+            <span class="badge text-bg-{{ badge }}">{{ b.outcome }}</span>
+          </td>
+          <td><span class="text-muted">{{ b.placed_at.strftime('%Y-%m-%d %H:%M') }}</span></td>
+          <td>
+            <span class="{{ b.end_time|urgency }}"
+                  title="{{ b.end_time.strftime('%Y-%m-%d %H:%M') }}">
+              {{ b.end_time|humanize_until }}
+            </span>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p class="text-muted">You haven't placed any bids yet.</p>
+{% endif %}
+{% endblock %}

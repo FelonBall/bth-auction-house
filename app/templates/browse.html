@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Browse — BTH Auction House{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Active auctions</h2>
+  {% if current_user() %}
+    <a class="btn btn-success" href="{{ url_for('auctions.new') }}">
+      + List item
+    </a>
+  {% endif %}
+</div>
+
+<form class="mb-3" method="get">
+  <div class="input-group">
+    <label class="input-group-text" for="category">Category</label>
+    <select name="category" id="category" class="form-select"
+            onchange="this.form.submit()">
+      <option value="">All categories</option>
+      {% for c in categories %}
+        <option value="{{ c.category_id }}"
+                {% if c.category_id == selected_category %}selected{% endif %}>
+          {% if c.parent_id %}&nbsp;&nbsp;&nbsp;{% endif %}{{ c.name }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+</form>
+
+{% if auctions %}
+  <table class="table table-hover align-middle bg-white">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Category</th>
+        <th>Seller</th>
+        <th class="text-end">Current bid</th>
+        <th class="text-end">Bids</th>
+        <th>Ends</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in auctions %}
+        <tr>
+          <td>{{ a.title }}</td>
+          <td><span class="text-muted">{{ a.category_name }}</span></td>
+          <td>{{ a.seller_username }}</td>
+          <td class="text-end price">{{ a.current_price|sek }}</td>
+          <td class="text-end">{{ a.bid_count }}</td>
+          <td>
+            <span class="{{ a.end_time|urgency }}"
+                  title="{{ a.end_time.strftime('%Y-%m-%d %H:%M') }}">
+              {{ a.end_time|humanize_until }}
+            </span>
+          </td>
+          <td>
+            <a class="btn btn-sm btn-outline-primary"
+               href="{{ url_for('auctions.detail', auction_id=a.auction_id) }}">
+              View
+            </a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p class="text-muted">No active auctions match your filter.</p>
+{% endif %}
+{% endblock %}
